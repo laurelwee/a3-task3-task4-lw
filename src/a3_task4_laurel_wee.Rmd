@@ -1,0 +1,74 @@
+---
+title: "a3_task4_laurel_wee"
+author: "Laurel Wee"
+date: "11/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(lubridate)
+library(janitor)
+```
+Assignment 3 task 4
+
+# Summary
+
+### Read in urchins data
+```{r}
+purple_urchin_naples <- read.csv(here("data","urchins.csv")) %>% 
+  clean_names() %>% 
+  mutate(naples_date = mdy(date)) %>% 
+  mutate(naples_year= year(naples_date)) %>% 
+  mutate(naples_month= month(naples_date)) %>% 
+  filter(common_name == "Purple Urchin",  naples_year== "2010", naples_month== "1", site== "NAPL")
+```
+
+### Make and consider histogram and QQ-plots for the size distribution for the treatments "CONTROL" and "Annual". 
+
+```{r}
+# histogram for size distribution in each treatment
+ggplot(purple_urchin_naples, aes(size, fill= treatment, bin= 30))+
+  geom_histogram(color= "black")+
+  scale_fill_manual(values = c("brown", "green"))+
+  facet_wrap(~treatment)+
+  labs(x= "Urchin Diameter (cm)", y= "Number of Urchins", title = "Size comparisons of Purple and Red Urchins in areas with or without giant kelp", subtitle = "CONTROL (no removal) vs ANNUAL (annual removal), Naples Reef, January 2010 (WEE)")+
+  theme(legend.position = "none")
+
+# qq-plot for size distribution in each treatment
+ggplot(purple_urchin_naples, aes(sample= size, color= treatment))+
+  geom_qq()+
+  facet_wrap(~treatment)+
+  scale_color_manual(values = c("brown", "green"))+
+  labs(y="Urchin Diameter (cm)" , title = "Distributions of Purple and Red Urchins size in areas with or without giant kelp", subtitle = "CONTROL (no removal) vs ANNUAL (annual removal), Naples Reef, January 2010 (WEE)")+
+  theme(legend.position = "none")
+  
+```
+
+### Main takeaways about the distribution of urcin sizes for "CONTROL" and "ANNUAL"
+
+## c. Create a table that includes summary statistics for both treatments of Purple urchins in Naples Reef in January 2010.
+Table includes mean size (cm), median size (cm), standard deviation of the size (cm), and the sample size. 
+
+```{r}
+purple_urchin_summary_naples <- purple_urchin_naples %>%
+  group_by(treatment) %>% 
+  summarize(mean = mean(size),
+            medium = median(size),
+            sd = sd(size),
+            n = n()) 
+
+View(purple_urchin_summary_naples)
+
+```
+
+## d. Two sample t-test
+
+
+```{r}
+control_sample_urchins <- 
+```
+
