@@ -13,47 +13,67 @@ library(kableExtra)
 library(lubridate)
 library(janitor)
 ```
-Assignment 3 task 4
+# Assignment 3 task 4
 
-# Summary
+## Summary
+Here we continue to explore data of purple urchins recorded in Santa Barbara and focus on the two treatments that were conducted. One treatment was ANNUAL removal of kelp and the other was a CONTROL that had no kelp removal. The data was recorded by Santa Barbara Coastal Long Term Ecological Research program divers from 2008 to 2020. In the exploratory graphs and summary statistics we see the that mean diameter of the urchins in the ANNUAL kelp removal is 4.88% larger than the mean diameter of urchins in the control treatment. It is interesting that the actual difference in mean is 0.19 cm and the median difference is 0.5cm when the data is rounded to the nearest 0.5cm. 
 
-### Read in urchins data
+
+## Citation for data
+Reed, D. 2020. SBC LTER: Reef: Long-term experiment: Kelp removal: Urchin size frequency distribution ver 20. Environmental Data Initiative. https://doi.org/10.6073/pasta/5a1e9ef03aa47bd2225c0bb98a02a63b.
+
+### Read in Urchins data using 'here' and clean the names using 'clean_names'.
+### a. Create new separate columns for the date in month/day/year format, the month, and the year. Filter the subset of data so it includes observations for Naples Reef observations for purple urchins observed in January 2010.
+
 ```{r}
-purple_urchin_naples <- read.csv(here("data","urchins.csv")) %>% 
+purple_urchin_naples <- 
+  read.csv(here("data","urchins.csv")) %>% 
   clean_names() %>% 
   mutate(naples_date = mdy(date)) %>% 
   mutate(naples_year= year(naples_date)) %>% 
   mutate(naples_month= month(naples_date)) %>% 
-  filter(common_name == "Purple Urchin",  naples_year== "2010", naples_month== "1", site== "NAPL")
+  filter(common_name == "Purple Urchin",  
+         naples_year== "2010", 
+         naples_month== "1", 
+         site== "NAPL")
+
+View(purple_urchin_naples)
 ```
 
-### Make and consider histogram and QQ-plots for the size distribution for the treatments "CONTROL" and "Annual". 
+### b. Make histogram and QQ-plots for the size distribution for the treatments "CONTROL" and "Annual" and share key takeaways below.  
 
 ```{r}
 # histogram for size distribution in each treatment
-ggplot(purple_urchin_naples, aes(size, fill= treatment, bin= 30))+
-  geom_histogram(color= "black")+
+ggplot(purple_urchin_naples, aes(size, fill= treatment))+
+  geom_histogram(color= "black", bins= 30, binwidth = .5)+
   scale_fill_manual(values = c("brown", "green"))+
   facet_wrap(~treatment)+
-  labs(x= "Urchin Diameter (cm)", y= "Number of Urchins", title = "Size comparisons of Purple and Red Urchins in areas with or without giant kelp", subtitle = "CONTROL (no removal) vs ANNUAL (annual removal), Naples Reef, January 2010 (WEE)")+
+  labs(x= "Urchin Diameter (cm)", 
+       y= "Number of Urchins", 
+       title = "Size comparisons of Purple and Red Urchins in areas with or without giant kelp", 
+       subtitle = "CONTROL (no removal) vs ANNUAL (annual removal), Naples Reef, January 2010 (WEE)")+
   theme(legend.position = "none")
 
 # qq-plot for size distribution in each treatment
-ggplot(purple_urchin_naples, aes(sample= size, color= treatment))+
+ggplot(purple_urchin_naples, 
+       aes(sample= size, color= treatment))+
   geom_qq()+
   facet_wrap(~treatment)+
   scale_color_manual(values = c("brown", "green"))+
-  labs(y="Urchin Diameter (cm)" , title = "Distributions of Purple and Red Urchins size in areas with or without giant kelp", subtitle = "CONTROL (no removal) vs ANNUAL (annual removal), Naples Reef, January 2010 (WEE)")+
+  labs(y="Urchin Diameter (cm)" , 
+       title = "Distributions of Purple and Red Urchins size in areas with or without giant kelp", 
+       subtitle = "CONTROL (no removal) vs ANNUAL (annual removal), Naples Reef, January 2010 (WEE)")+
   theme(legend.position = "none")
   
 ```
 
 ### Main takeaways about the distribution of urcin sizes for "CONTROL" and "ANNUAL"
+The size the urchins in both treatments are have relative normal distribution as shown by the linearity of the qq plot. The histogram of the control treatment show the urchin size has a slight negative skew. 
 
-## c. Create a table that includes summary statistics for both treatments of Purple urchins in Naples Reef in January 2010.
+### c. Create a table that includes summary statistics for both treatments of Purple urchins in Naples Reef in January 2010.
 Table includes mean size (cm), median size (cm), standard deviation of the size (cm), and the sample size. 
 
-```{r}
+```{r, message=FALSE, error=FALSE}
 purple_urchin_summary_naples <- purple_urchin_naples %>%
   group_by(treatment) %>% 
   summarize(mean = mean(size),
@@ -61,14 +81,41 @@ purple_urchin_summary_naples <- purple_urchin_naples %>%
             sd = sd(size),
             n = n()) 
 
-View(purple_urchin_summary_naples)
+kbl(purple_urchin_summary_naples, 
+    col.names = c("Species name", 
+                  "Mean diameter (cm)", 
+                  "Median diameter (cm)", 
+                  "Standard deviation (cm)", 
+                  "Sample size")) %>% 
+  kable_styling(full_width = FALSE, "hover")
 
 ```
 
-## d. Two sample t-test
-
+### d. Perform a two sample t-test
 
 ```{r}
-control_sample_urchins <- 
-```
+annual_sample_urchins <- purple_urchin_naples %>% 
+  filter(treatment=="ANNUAL") %>% 
+  pull(size)
+control_sample_urchins <- purple_urchin_naples %>% 
+  filter(treatment=="CONTROL") %>% 
+  pull(size)
 
+t.test(x= annual_sample_urchins, y= control_sample_urchins)
+  
+```
+### e. Compare the means of purple urchin size from the two treatments.  
+
+```{r}
+# Actual difference of means: Annual treatment urchin mean minus the Control treatment urchin mean is 0.19
+# 3.917-3.726= 0.191
+# Percent difference of means: Annual treatment urchin mean minus the Control treatment urchin mean divided by the Annual treatment urchin mean, multiplied by 100 is 4.88%
+# (0.191/3.917)*100= 4.88%
+```
+The mean diameter of urchins in the treatment of annual kelp removal is 3.917 while the mean urchin diameter of urchins in the control treatment of no kelp removal is 3.725, which is 0.19 cm of actual difference. This difference is somewhat small as the data rounding is to the .5cm and the null hypothesis of the two sample t-test is that the difference is means is 0, but the p-value is 0.25. The percent difference of the means is 4.88%. The median of the annual treatment is only .5cm larger than the control mean diameter. This is interesting because this is study rounded the measurements to the nearest .5cm for the data. Both treatments have similar standard deviations to each other with annual and control as 0.97 and 0.87 respectively. 
+
+### f. p-value 
+The p-value is 0.25 meaning that there is a 25 % chance that samples are at least as different as ours if samples are actually drawn from populations with the same means.
+
+
+## END of Assignment 3 Task 4
